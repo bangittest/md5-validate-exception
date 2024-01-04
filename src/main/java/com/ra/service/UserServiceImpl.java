@@ -5,17 +5,25 @@ import com.ra.model.dao.request.UserRequest;
 import com.ra.model.dao.response.UserResponse;
 import com.ra.model.entity.User;
 import com.ra.repository.UserReponsitory;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@Slf4j
+@Transactional
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService{
     @Autowired
     private UserReponsitory userReponsitory;
+    private PasswordEncoder passwordEncoder;
     @Override
     public Page<UserResponse> findAll(Pageable pageable) {
         Page<User>users=userReponsitory.findAll(pageable);
@@ -31,7 +39,7 @@ public class UserServiceImpl implements UserService{
         User user = User.builder()
                 .userName(userRequest.getUserName()).
                 fullName(userRequest.getFullName()).
-                password(userRequest.getPassword()).build();
+                password(passwordEncoder.encode(userRequest.getPassword())).build();
         User userNew = userReponsitory.save(user);
         return UserResponse.builder().id(userNew.getId()).userName(userNew.getUserName()).fullName(user.getFullName()).build();
     }
